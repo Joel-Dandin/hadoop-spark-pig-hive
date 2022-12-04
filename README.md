@@ -1,6 +1,6 @@
-# Apache Hadoop distribution on Ubuntu
+# Apache Hadoop distribution on Ubuntu with Spark, Pig, and Hive
 
-The docker image Apache hadoop 3.3.4 distribution on Ubuntu 22.04
+The docker image Apache hadoop 3.3.4 distribution on Ubuntu 22.04 with Spark 33.3.1, Pig 0.17.0, and Hive 3.1.3
 
 
 Find this on Docker Hub [https://hub.docker.com/r/fedric/hadoop-spark-pig-hive](https://hub.docker.com/r/fedric/hadoop-spark-pig-hive)
@@ -8,7 +8,7 @@ Find this on Docker Hub [https://hub.docker.com/r/fedric/hadoop-spark-pig-hive](
 # Build the image
 
 ```
-docker build -t fedric/hadoop-spark-pig-hive .
+docker build  -t fedric/hadoop-spark-pig-hive.
 ```
 # Pull the image
 
