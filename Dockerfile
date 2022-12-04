@@ -1,5 +1,4 @@
-
-# Creates pseudo distributed hadoop 3.3.4, Ubuntu 22.04
+# Creates pseudo distributed hadoop 3.3.4, Ubuntu 22.04, spark 3.3.1, pig 0.17.0, hive 3.1.3
 #
 # docker build -t Joel-Fedric/hadoop-spark-pig-hive:2.9.2  .
 
@@ -87,4 +86,51 @@ RUN service ssh start && $HADOOP_PREFIX/etc/hadoop/hadoop-env.sh && $HADOOP_PREF
 #Add hadoop to path
 ENV PATH /usr/local/hadoop/bin:$PATH
 
+# pig
+RUN curl -s http://apache.mirror.anlx.net/pig/pig-0.17.0/pig-0.17.0.tar.gz | tar -xz -C /usr/local
+ENV PIG_HOME /usr/local/pig-0.17.0/
+RUN ln -s $PIG_HOME /usr/local/pig
+ENV PATH $PATH:$PIG_HOME/bin
+
+# hive
+RUN curl -s https://dlcdn.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz  | tar -xz -C /usr/local
+ENV HIVE_HOME /usr/local/apache-hive-3.1.3-bin/
+RUN ln -s $HIVE_HOME /usr/local/hive
+ENV PATH $PATH:$HIVE_HOME/bin
+
+RUN $HIVE_HOME/bin/schematool -dbType derby -initSchema
+
+RUN apt-get install -y netcat
+
+RUN service ssh start \
+    && nohup $HADOOP_PREFIX/sbin/start-dfs.sh &>/dev/null & \
+    nohup $HADOOP_PREFIX/sbin/start-yarn.sh &>/dev/null & \
+    while ! nc -z localhost 9000; do sleep 1; done \
+    && hdfs dfsadmin -safemode wait \
+    && RUN $HADOOP_PREFIX/bin/hdfs dfs -mkdir -p /user/hive \
+    && $HADOOP_PREFIX/bin/hdfs dfs -mkdir -p /user/hive/warehouse \
+    && $HADOOP_PREFIX/bin/hdfs dfs -mkdir /tmp \
+    && $HADOOP_PREFIX/bin/hdfs dfs -chmod g+w /user/hive/warehouse \
+    && $HADOOP_PREFIX/bin/hdfs dfs -chmod g+w /tmp \
+    && nohup $HADOOP_PREFIX/sbin/stop-dfs.sh &>/dev/null & \
+    nohup $HADOOP_PREFIX/sbin/stop-yarn.sh &>/dev/null &
+
+#mr job
+RUN apt-get install -y python3-pip \
+    && pip install mrjob
+
+# spark
+RUN curl -s https://archive.apache.org/dist/spark/spark-3.3.1/spark-3.3.1-bin-without-hadoop.tgz | tar -xz -C /usr/local
+ENV SPARK_HOME /usr/local/spark-3.3.1-bin-without-hadoop/
+RUN ln -s $SPARK_HOME /usr/local/spark
+ENV PATH $PATH:$SPARK_HOME/bin
+ADD spark-env.sh $SPARK_HOME/conf/spark-env.sh
+
+ADD bootstrap.sh /etc/bootstrap.sh
+RUN chown root:root /etc/bootstrap.sh
+RUN chmod 700 /etc/bootstrap.sh
+
+# ENV BOOTSTRAP /etc/bootstrap.sh
+
+# ENTRYPOINT ["/etc/bootstrap.sh", "-d"]
 EXPOSE 8031 8030 8032 8088 8033 40661 8040 13562 8042 50070 9000 50010 50075 50020 50090 8080 8081
