@@ -22,8 +22,8 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build the Docker image
         run: |
-          docker build . --tag ghcr.io/joel/hello-docker-gcr-demo:latest
-          docker run ghcr.io/joel/hadoop-spark-pig-hive:latest
-          docker push ghcr.io/joel/hadoop-spark-pig-hive:latest
+          docker build . --tag ghcr.io/Joel-Fedric/hello-docker-gcr-demo:latest
+          docker run ghcr.io/Joel-Fedric/hadoop-spark-pig-hive:latest
+          docker push ghcr.io/Joel-Fedric/hadoop-spark-pig-hive:latest
       
       
